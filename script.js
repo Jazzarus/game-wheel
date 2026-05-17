@@ -183,6 +183,16 @@ let areClassImagesLoaded = false;
 let isTuningMode = false;
 let currentClassIndex = 0;
 let isWheelCacheDirty = true;
+let audioUnlocked = false;
+
+document.addEventListener("click", () => {
+  if (!audioUnlocked) {
+    const testAudio = new Audio("sounds/tick.mp3");
+    testAudio.volume = 0;
+    testAudio.play().catch(() => {});
+    audioUnlocked = true;
+  }
+});
 
 finalSound.loop = false;
 cheersSound.loop = false;
