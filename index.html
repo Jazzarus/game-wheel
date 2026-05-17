@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Path of Exile 2 Class Picker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Path of Exile 2 Class Picker</h1>
+    <div class="wheel-pointer" aria-hidden="true"></div>
+    <canvas id="classWheel" width="1200" height="1200" aria-label="Class picker spinning wheel"></canvas>
+  </main>
+
+  <div id="modalOverlay" class="popup hidden">
+    <div id="modalContent" class="popup-content">
+      <div id="modalText" class="popup-title"></div>
+      <img id="modalPortrait" class="popup-portrait" src="" alt="">
+      <div id="modalReminder" class="popup-reminder hidden">REMEMBER TO RESPECT THE WHEEL</div>
+      <button id="modalOk" class="popup-button" type="button">OK</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
