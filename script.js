@@ -172,8 +172,8 @@ const imageConfigs = {
     rotation: 0,
   },
 };
-const finalSound = new Audio("sounds/Howl.mp3");
-const cheersSound = new Audio("sounds/Cheers.mp3");
+const finalSound = new Audio("sounds/howl.mp3");
+const cheersSound = new Audio("sounds/cheers.mp3");
 let pendingElimination = null;
 let isFinished = false;
 let wheelRotation = 0;
