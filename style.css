@@ -30,7 +30,7 @@ main {
 
 h1 {
   margin: 0 0 24px;
-  font-size: 5rem;
+  font-size: clamp(1.2rem, 3vw, 3rem);
 }
 
 .wheel-pointer {
@@ -181,7 +181,7 @@ canvas {
   position: fixed;
   top: 20px;
   left: 20px;
-  width: 360px;
+  width: clamp(80px, 25vw, 320px);
   height: auto;
   z-index: 10;
 }
