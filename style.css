@@ -30,7 +30,7 @@ main {
 
 h1 {
   margin: 0 0 24px;
-  font-size: 2rem;
+  font-size: 5rem;
 }
 
 .wheel-pointer {
@@ -175,4 +175,13 @@ canvas {
     inset 0 1px 0 rgba(255, 255, 255, 0.14),
     0 3px 0 #21050b,
     0 8px 16px rgba(0, 0, 0, 0.42);
+}
+
+.poe2-logo {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 360px;
+  height: auto;
+  z-index: 10;
 }
