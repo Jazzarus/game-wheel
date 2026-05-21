@@ -285,6 +285,31 @@ function preloadPortraits() {
   return Promise.all(portraitPromises);
 }
 
+function preloadUIImages() {
+  const uiImagePaths = [
+    "images/window.png",
+    "images/frame.png",
+    "images/blood.png",
+    "images/arrow.png",
+    "images/ring.png",
+    "images/poe2-logo.png",
+    "images/banner.png",
+    "images/jazzarus-logo.png",
+    "images/youtube-logo.png"
+  ];
+
+  const promises = uiImagePaths.map((path) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = path;
+    });
+  });
+
+  return Promise.all(promises);
+}
+
 function preloadSounds() {
   const sounds = [finalSound, cheersSound, reloadSound, gunshotSound];
 
@@ -736,7 +761,8 @@ document.addEventListener("keydown", (event) => {
 Promise.all([
   preloadClassImages(),
   preloadPortraits(),
-  preloadSounds()
+  preloadSounds(),
+  preloadUIImages()
 ]).then(() => {
   areClassImagesLoaded = true;
 
