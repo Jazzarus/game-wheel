@@ -174,6 +174,16 @@ const imageConfigs = {
 };
 const finalSound = new Audio("sounds/howl.mp3");
 const cheersSound = new Audio("sounds/cheers.mp3");
+const tickSounds = [];
+const TICK_POOL_SIZE = 6;
+
+for (let i = 0; i < TICK_POOL_SIZE; i++) {
+  const sound = new Audio("sounds/tick.mp3");
+  sound.preload = "auto";
+  tickSounds.push(sound);
+}
+
+let tickIndex = 0;
 let pendingElimination = null;
 let isFinished = false;
 let wheelRotation = 0;
@@ -285,6 +295,15 @@ function syncWheelCacheSize() {
   wheelCacheCanvas.width = classWheel.width;
   wheelCacheCanvas.height = classWheel.height;
   markWheelCacheDirty();
+}
+
+function playTickSound() {
+  const sound = tickSounds[tickIndex];
+
+  sound.currentTime = 0;
+  sound.play();
+
+  tickIndex = (tickIndex + 1) % TICK_POOL_SIZE;
 }
 
 function updateWheelCache() {
@@ -431,12 +450,6 @@ function getSegmentAtPointer() {
   const angleUnderPointer = normalizeAngle(pointerAngle - wheelRotation);
 
   return Math.floor(angleUnderPointer / segmentAngle);
-}
-
-function playTickSound() {
-  const tickSound = new Audio("sounds/tick.mp3");
-
-  tickSound.play();
 }
 
 function pushPointer() {
