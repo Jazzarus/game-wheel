@@ -174,6 +174,13 @@ const imageConfigs = {
 };
 const finalSound = new Audio("sounds/howl.mp3");
 const cheersSound = new Audio("sounds/cheers.mp3");
+const reloadSound = new Audio("sounds/reload.mp3");
+const gunshotSound = new Audio("sounds/gunshot.mp3");
+gunshotSound.volume = 0.6;
+reloadSound.volume = 0.7;
+
+reloadSound.preload = "auto";
+gunshotSound.preload = "auto";
 const tickSounds = [];
 const TICK_POOL_SIZE = 6;
 
@@ -504,12 +511,21 @@ function spinWheelToClass(selectedClass) {
 }
 
 function showModal(message, className = message, isFinal = false) {
+  const blood = document.getElementById("bloodSplatter");
+  blood.classList.remove("show");
   const classImage = classImages[className];
   const imagePath = isFinal
     ? classImage?.src || classImagePaths[className]
     : `portraits/${getClassAssetName(className)}.png`;
 
+  if (!isFinal) {
+  modalText.innerHTML = `
+    ${message}
+    <div class="eliminated-text">Eliminated</div>
+  `;
+} else {
   modalText.textContent = message;
+}
   modalPortrait.src = imagePath;
   modalPortrait.alt = className;
   modalPortrait.className = isFinal
@@ -519,6 +535,36 @@ function showModal(message, className = message, isFinal = false) {
   modalReminder.classList.toggle("hidden", !isFinal);
   document.body.classList.add("popup-active");
   modalOverlay.classList.remove("hidden");
+  if (!isFinal) {
+  // Step 1: Reload sound
+  reloadSound.currentTime = 0;
+  reloadSound.play();
+
+  // Step 2: Gunshot + effects
+  setTimeout(() => {
+  gunshotSound.currentTime = 0;
+  gunshotSound.play();
+
+// 💥 SCREEN SHAKE
+modalContent.classList.add("shake");
+setTimeout(() => {
+  modalContent.classList.remove("shake");
+}, 200);
+
+// 🩸 BLOOD SPLATTER (slight delay for sync)
+setTimeout(() => {
+  const blood = document.getElementById("bloodSplatter");
+
+  const randomX = (Math.random() - 0.5) * 30;
+  const randomY = (Math.random() - 0.5) * 30;
+  const verticalOffset = -20;
+
+  blood.style.transform = `translate(calc(-50% + ${randomX}px), calc(-50% + ${randomY + verticalOffset}px)) scale(0.9)`;
+  blood.classList.add("show");
+
+}, 30);
+  }, 850);
+}
 }
 
 function hideModal() {
@@ -538,8 +584,6 @@ function showFinalClass() {
 }
 
 function showEliminatedClass(className) {
-  cheersSound.currentTime = 0;
-  cheersSound.play();
   showModal(className);
 }
 
