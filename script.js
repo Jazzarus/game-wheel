@@ -383,6 +383,7 @@ function drawWheel() {
   wheelContext.rotate(wheelRotation);
   wheelContext.drawImage(wheelCacheCanvas, -centerX, -centerY);
   wheelContext.restore();
+  
 }
 
 function drawImageInSlice(context, className, image, radius, segmentAngle) {

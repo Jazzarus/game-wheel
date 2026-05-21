@@ -32,6 +32,8 @@ main {
 h1 {
   margin: 0 0 24px;
   font-size: clamp(1.2rem, 3vw, 3rem);
+  color: #f5e199;
+  letter-spacing: 0.08em;
 }
 
 .wheel-pointer {
@@ -73,7 +75,7 @@ canvas {
   width: min(1200px, 90vw, 75vh);
   height: min(1200px, 90vw, 75vh);
   margin: 0 auto;
-  border: 2px solid #3a3f4b;
+  border: none;
   border-radius: 50%;
   background: #1c2028;
   cursor: pointer;
@@ -185,4 +187,65 @@ canvas {
   width: clamp(80px, 25vw, 320px);
   height: auto;
   z-index: 10;
+}
+
+.yt-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: clamp(180px, 22vw, 320px);
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 14px;
+  text-decoration: none;
+  cursor: pointer;
+  z-index: 10;
+  transition: filter 150ms ease, transform 150ms ease;
+}
+
+.yt-banner:hover {
+  filter: brightness(1.15);
+  transform: scale(1.03);
+}
+
+.yt-banner-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.yt-banner-wolf {
+  position: relative;
+  height: clamp(32px, 4.5vw, 56px);
+  width: auto;
+  z-index: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
+}
+
+.yt-banner-name {
+  position: relative;
+  z-index: 1;
+  color: #1a0f00;
+  font-size: clamp(1rem, 1.9vw, 1.55rem);
+  font-weight: bold;
+  font-family: "Fontin", serif;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(255, 220, 150, 0.5);
+  white-space: nowrap;
+}
+
+.yt-banner-yt {
+  position: relative;
+  z-index: 1;
+  height: clamp(18px, 2.5vw, 32px);
+  width: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
 }
