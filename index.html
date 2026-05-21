@@ -10,16 +10,25 @@
   <img src="images/poe2-logo.png" alt="Path of Exile 2" class="poe2-logo">
   <main>
     <h1>Path of Exile 2 Class Picker</h1>
-    <div class="wheel-pointer" aria-hidden="true"></div>
-    <canvas id="classWheel" width="1200" height="1200" aria-label="Class picker spinning wheel"></canvas>
+    <img src="images/arrow.png" alt="" class="wheel-pointer" aria-hidden="true">
+    <div class="wheel-container">
+      <img src="images/ring.png" alt="" class="wheel-ring" aria-hidden="true">
+      <canvas id="classWheel" width="1200" height="1200" aria-label="Class picker spinning wheel"></canvas>
+    </div>
   </main>
 
   <div id="modalOverlay" class="popup hidden">
     <div id="modalContent" class="popup-content">
       <div id="modalText" class="popup-title"></div>
-      <img id="modalPortrait" class="popup-portrait" src="" alt="">
+      <div class="popup-portrait-wrapper">
+        <img id="modalPortrait" class="popup-portrait" src="" alt="">
+        <img src="images/frame.png" alt="" class="popup-portrait-frame" aria-hidden="true">
+      </div>
       <div id="modalReminder" class="popup-reminder hidden">REMEMBER TO RESPECT THE WHEEL</div>
-      <button id="modalOk" class="popup-button" type="button">OK</button>
+      <button id="modalOk" class="popup-button" type="button">
+        <img src="images/ok.png" alt="" class="popup-button-bg" aria-hidden="true">
+        <span>OK</span>
+      </button>
     </div>
   </div>
 

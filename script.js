@@ -340,8 +340,8 @@ function updateWheelCache() {
 
   classOptions.forEach((_, index) => {
     const markerAngle = index * segmentAngle;
-    const pegX = centerX + Math.cos(markerAngle) * (radius - 10);
-    const pegY = centerY + Math.sin(markerAngle) * (radius - 10);
+    const pegX = centerX + Math.cos(markerAngle) * (radius - 5);
+    const pegY = centerY + Math.sin(markerAngle) * (radius - 5);
     const pegGradient = wheelCacheContext.createRadialGradient(
       pegX - 4,
       pegY - 4,
