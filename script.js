@@ -272,6 +272,32 @@ function preloadClassImages() {
   return Promise.all(imagePromises);
 }
 
+function preloadPortraits() {
+  const portraitPromises = classOptions.map((className) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = `portraits/${getClassAssetName(className)}.png`;
+    });
+  });
+
+  return Promise.all(portraitPromises);
+}
+
+function preloadSounds() {
+  const sounds = [finalSound, cheersSound, reloadSound, gunshotSound];
+
+  return Promise.all(
+    sounds.map((sound) => {
+      return new Promise((resolve) => {
+        sound.oncanplaythrough = resolve;
+        sound.load();
+      });
+    })
+  );
+}
+
 function getRandomClass(options) {
   const randomIndex = Math.floor(Math.random() * options.length);
 
@@ -707,8 +733,17 @@ document.addEventListener("keydown", (event) => {
   drawWheel();
 });
 
-preloadClassImages().then(() => {
+Promise.all([
+  preloadClassImages(),
+  preloadPortraits(),
+  preloadSounds()
+]).then(() => {
   areClassImagesLoaded = true;
+
   markWheelCacheDirty();
   drawWheel();
+
+  // 🔥 SHOW THE SITE
+  document.body.classList.remove("loading");
+  document.getElementById("loader").style.display = "none";
 });
