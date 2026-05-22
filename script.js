@@ -201,6 +201,7 @@ let isTuningMode = false;
 let currentClassIndex = 0;
 let isWheelCacheDirty = true;
 let audioUnlocked = false;
+let isClassicMode = false;
 
 document.addEventListener("click", () => {
   if (!audioUnlocked) {
@@ -555,7 +556,14 @@ function spinWheelToClass(selectedClass) {
 
     isSpinning = false;
     previousSegmentIndex = null;
-    showEliminatedClass(selectedClass.name);
+    if (isClassicMode) {
+  // Skip elimination → go straight to final
+  classOptions.length = 1;
+  classOptions[0] = selectedClass.name;
+  showFinalClass();
+} else {
+  showEliminatedClass(selectedClass.name);
+}
   }
 
   requestAnimationFrame(animateSpin);
@@ -772,4 +780,11 @@ Promise.all([
   // 🔥 SHOW THE SITE
   document.body.classList.remove("loading");
   document.getElementById("loader").style.display = "none";
+});
+
+const toggleSwitch = document.getElementById("toggleSwitch");
+
+toggleSwitch.addEventListener("click", () => {
+  isClassicMode = !isClassicMode;
+  toggleSwitch.classList.toggle("active");
 });
