@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,11 +8,14 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" href="images/favicon.png">
 </head>
+
 <body class="loading">
   <div id="loader">
-  <div class="loader-wheel"></div>
-</div>
+    <div class="loader-wheel"></div>
+  </div>
+
   <img src="images/poe2-logo.png" alt="Path of Exile 2" class="poe2-logo">
+
   <main>
     <h1>Path of Exile 2 Class Picker</h1>
     <img src="images/arrow.png" alt="" class="wheel-pointer" aria-hidden="true">
@@ -22,14 +26,27 @@
   </main>
 
   <div id="modeToggle" class="mode-toggle">
-  <span>Elimination</span>
-
-  <div id="toggleSwitch" class="toggle-switch">
-    <div class="toggle-knob"></div>
+    <span class="mode-label tooltip">
+      Classic
+      <span class="tooltip-box">One spin. You get the class you land on.</span>
+    </span>
+    <img id="modeToggleImage" src="images/classic.png" alt="Mode Toggle">
+    <span class="mode-label tooltip">
+      Elimination
+      <span class="tooltip-box">Each spin removes a class. Continue until only one remains.</span>
+    </span>
   </div>
 
-  <span>Classic</span>
-</div>
+  <button id="restartButton" class="restart-button" type="button">Restart</button>
+
+  <aside id="classSelectorPanel" class="class-selector-panel" aria-label="Class selection">
+    <div class="frame-top"></div>
+    <div class="frame-middle">
+      <div id="classSelectorList" class="class-selector-list"></div>
+      <button id="classSelectorToggle" class="class-selector-toggle" type="button">Deselect All</button>
+    </div>
+    <div class="frame-bottom"></div>
+  </aside>
 
   <div id="modalOverlay" class="popup hidden">
     <div id="modalContent" class="popup-content">
@@ -47,7 +64,12 @@
     </div>
   </div>
 
-  <a href="https://www.youtube.com/@Jazzarus_" target="_blank" class="yt-banner" rel="noopener">
+  <a
+    href="https://www.youtube.com/@Jazzarus_"
+    target="_blank"
+    class="yt-banner"
+    rel="noopener"
+  >
     <img src="images/banner.png" alt="" class="yt-banner-bg" aria-hidden="true">
     <img src="images/jazzarus-logo.png" alt="" class="yt-banner-wolf">
     <span class="yt-banner-name">Jazzarus</span>
@@ -56,4 +78,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
