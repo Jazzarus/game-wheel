@@ -473,12 +473,33 @@ function toggleAllClasses() {
   const shouldSelectAll = selectedClasses.length !== classOptions.length;
   const toggles = [...classSelectorList.querySelectorAll(".class-selector-check")];
 
-  toggles.forEach((toggle) => {
-    setClassSelectorToggle(toggle, shouldSelectAll);
-  });
+  if (shouldSelectAll) {
+    // Select all visually first
+    toggles.forEach((toggle) => {
+      setClassSelectorToggle(toggle, true);
+    });
 
-  if (!shouldSelectAll) {
+    // Find classes that are NOT currently in selectedClasses
+    const missingClasses = classOptions.filter(
+      (className) => !selectedClasses.includes(className)
+    );
+
+    // Shuffle ONLY the missing ones
+    shuffleClasses(missingClasses);
+
+    // Append them to preserve existing order
+    selectedClasses.push(...missingClasses);
+  } else {
+    // Deselect all (but keep one)
+    toggles.forEach((toggle) => {
+      setClassSelectorToggle(toggle, false);
+    });
+
     setClassSelectorToggle(toggles[0], true);
+
+    // Keep only one class
+    selectedClasses.length = 1;
+    selectedClasses[0] = toggles[0].dataset.className;
   }
 
   updateSelectedClasses();
