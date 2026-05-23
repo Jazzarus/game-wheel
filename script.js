@@ -194,6 +194,7 @@ const modalText = document.getElementById("modalText");
 const modalPortrait = document.getElementById("modalPortrait");
 const modalReminder = document.getElementById("modalReminder");
 const modalOk = document.getElementById("modalOk");
+const findBuildsBtn = document.getElementById("findBuildsBtn");
 const bloodSplatter = document.getElementById("bloodSplatter");
 const classSelectorPanel = document.getElementById("classSelectorPanel");
 const classSelectorList = document.getElementById("classSelectorList");
@@ -756,6 +757,13 @@ function tuneCurrentClass(event) {
 }
 
 // ===== MODAL =====
+function getPoeNinjaLink(className) {
+  const base = "https://poe.ninja/poe2/builds/vaal";
+  const encodedClass = encodeURIComponent(className);
+
+  return `${base}?class=${encodedClass}&items=!Headhunter&min-level=90&min-ehp=15000&min-dps=75000`;
+}
+
 function showModal(message, className = message, isFinal = false) {
   bloodSplatter.classList.remove("show");
 
@@ -780,6 +788,12 @@ function showModal(message, className = message, isFinal = false) {
     : "popup-portrait";
   modalContent.classList.toggle("is-final-popup", isFinal);
   modalReminder.classList.toggle("hidden", !isFinal);
+  findBuildsBtn.classList.toggle("hidden", !isFinal);
+  findBuildsBtn.onclick = isFinal
+    ? () => {
+        window.open(getPoeNinjaLink(className), "_blank");
+      }
+    : null;
   document.body.classList.add("popup-active");
   modalOverlay.classList.remove("hidden");
 
