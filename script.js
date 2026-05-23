@@ -387,9 +387,19 @@ function updateSelectedClasses() {
     return;
   }
 
-  selectedClasses.length = 0;
+  // Remove deselected classes (preserve order)
+  for (let i = selectedClasses.length - 1; i >= 0; i--) {
+    if (!selectedNames.includes(selectedClasses[i])) {
+      selectedClasses.splice(i, 1);
+    }
+  }
+
+  // Add newly selected classes (append to end)
   classOptions.forEach((className) => {
-    if (selectedNames.includes(className)) {
+    if (
+      selectedNames.includes(className) &&
+      !selectedClasses.includes(className)
+    ) {
       selectedClasses.push(className);
     }
   });
@@ -788,12 +798,18 @@ function showModal(message, className = message, isFinal = false) {
     : "popup-portrait";
   modalContent.classList.toggle("is-final-popup", isFinal);
   modalReminder.classList.toggle("hidden", !isFinal);
-  findBuildsBtn.classList.toggle("hidden", !isFinal);
-  findBuildsBtn.onclick = isFinal
-    ? () => {
-        window.open(getPoeNinjaLink(className), "_blank");
-      }
-    : null;
+  if (isFinal) {
+    findBuildsBtn.classList.remove("hidden");
+
+    findBuildsBtn.onclick = () => {
+      window.open(getPoeNinjaLink(className), "_blank");
+    };
+  } else {
+    findBuildsBtn.classList.add("hidden");
+
+    // Important: remove any previous click handler
+    findBuildsBtn.onclick = null;
+  }
   document.body.classList.add("popup-active");
   modalOverlay.classList.remove("hidden");
 

@@ -510,7 +510,7 @@ body.loading .class-selector-panel {
   display: inline-block;
 }
 
-.popup-button.tooltip {
+.popup-button.tooltip:not(.hidden) {
   display: inline-flex;
 }
 
