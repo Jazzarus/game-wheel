@@ -1,178 +1,22 @@
-// ===== DATA =====
-const classOptions = [
-  "Deadeye",
-  "Pathfinder",
-  "Amazon",
-  "Abyssal Lich",
-  "Spirit Walker",
-  "Ritualist",
-  "Martial Artist",
-  "Invoker",
-  "Acolyte of Chayula",
-  "Infernalist",
-  "Blood Mage",
-  "Lich",
-  "Stormweaver",
-  "Chronomancer",
-  "Disciple of Varashta",
-  "Titan",
-  "Warbringer",
-  "Smith of Kitava",
-  "Tactician",
-  "Witchhunter",
-  "Gemling Legionnaire",
-  "Oracle",
-  "Shaman",
-];
-
-const selectedClasses = classOptions.filter((className) => {
-  return className !== "Abyssal Lich";
-});
-
-const segmentColors = ["#8b2f39", "#2f5f8b", "#6f7f35", "#7a4f91"];
+// ===== ACTIVE GAME =====
+const activeGame = GAME_CONFIGS[ACTIVE_GAME_ID];
+const classConfigs = new Map(
+  activeGame.classes.map((classConfig) => [classConfig.name, classConfig])
+);
+const classOptions = activeGame.classes.map((classConfig) => classConfig.name);
+const selectedClasses = activeGame.classes
+  .filter((classConfig) => classConfig.selectedByDefault)
+  .map((classConfig) => classConfig.name);
+const segmentColors = activeGame.wheel.segmentColors;
 const classColors = {};
 const classImagePaths = {};
 const classImages = {};
-const imageConfigs = {
-  "Abyssal Lich": {
-    offsetX: 30,
-    offsetY: 300,
-    scale: 2.1,
-    rotation: 0,
-  },
-  "Smith of Kitava": {
-    offsetX: 110,
-    offsetY: 150,
-    scale: 1.65,
-    rotation: 0,
-  },
-  Warbringer: {
-    offsetX: 130,
-    offsetY: 260,
-    scale: 1.7,
-    rotation: 0,
-  },
-  "Disciple of Varashta": {
-    offsetX: 110,
-    offsetY: -20,
-    scale: 1.8,
-    rotation: 0,
-  },
-  Titan: {
-    offsetX: 140,
-    offsetY: 160,
-    scale: 1.85,
-    rotation: 0,
-  },
-  "Acolyte of Chayula": {
-    offsetX: 20,
-    offsetY: 120,
-    scale: 2.4,
-    rotation: 0,
-  },
-  Infernalist: {
-    offsetX: 10,
-    offsetY: 360,
-    scale: 2.35,
-    rotation: 0,
-  },
-  Tactician: {
-    offsetX: 0,
-    offsetY: 270,
-    scale: 1.85,
-    rotation: 0,
-  },
-  Pathfinder: {
-    offsetX: 90,
-    offsetY: 150,
-    scale: 1.65,
-    rotation: 0,
-  },
-  Witchhunter: {
-    offsetX: -20,
-    offsetY: 210,
-    scale: 1.7,
-    rotation: 0,
-  },
-  Lich: {
-    offsetX: 0,
-    offsetY: 280,
-    scale: 2.2,
-    rotation: 0,
-  },
-  Deadeye: {
-    offsetX: 10,
-    offsetY: 210,
-    scale: 1.8,
-    rotation: 0,
-  },
-  Amazon: {
-    offsetX: 120,
-    offsetY: 140,
-    scale: 2,
-    rotation: 0,
-  },
-  Ritualist: {
-    offsetX: -10,
-    offsetY: 240,
-    scale: 1.7,
-    rotation: 0,
-  },
-  "Gemling Legionnaire": {
-    offsetX: 140,
-    offsetY: 390,
-    scale: 2.3,
-    rotation: 0,
-  },
-  "Spirit Walker": {
-    offsetX: 190,
-    offsetY: 190,
-    scale: 1.85,
-    rotation: 0,
-  },
-  Stormweaver: {
-    offsetX: 220,
-    offsetY: 300,
-    scale: 2.4,
-    rotation: 0,
-  },
-  Chronomancer: {
-    offsetX: 80,
-    offsetY: 260,
-    scale: 2.15,
-    rotation: 0,
-  },
-  Shaman: {
-    offsetX: 110,
-    offsetY: 330,
-    scale: 2.55,
-    rotation: 0,
-  },
-  "Blood Mage": {
-    offsetX: 40,
-    offsetY: 210,
-    scale: 1.95,
-    rotation: 0,
-  },
-  "Martial Artist": {
-    offsetX: 60,
-    offsetY: 140,
-    scale: 1.6,
-    rotation: 0,
-  },
-  Oracle: {
-    offsetX: 30,
-    offsetY: 340,
-    scale: 2.85,
-    rotation: 0,
-  },
-  Invoker: {
-    offsetX: 70,
-    offsetY: 340,
-    scale: 2.25,
-    rotation: 0,
-  },
-};
+const imageConfigs = Object.fromEntries(
+  activeGame.classes.map((classConfig) => [
+    classConfig.name,
+    { ...classConfig.wheelImageConfig },
+  ])
+);
 
 const BLOOD_DELAY = 30;
 const BLOOD_RANDOM_RANGE = 30;
@@ -181,6 +25,7 @@ const GUNSHOT_DELAY = 850;
 const SHAKE_DURATION = 200;
 const SPIN_DURATION = 10000;
 const TICK_POOL_SIZE = 6;
+const POINTER_ANGLE = 0;
 
 // ===== DOM REFERENCES =====
 const classWheel = document.getElementById("classWheel");
@@ -202,7 +47,15 @@ const classSelectorToggle = document.getElementById("classSelectorToggle");
 const modeToggleImage = document.getElementById("modeToggleImage");
 const modeLabels = document.querySelectorAll(".mode-label");
 const restartButton = document.getElementById("restartButton");
+const siteBase = document.getElementById("siteBase");
+const gameLogo = document.getElementById("gameLogo");
+const gameSwitchLink = document.getElementById("gameSwitchLink");
+const inactiveGameLogo = document.getElementById("inactiveGameLogo");
+const gameHeading = document.getElementById("gameHeading");
 const loader = document.getElementById("loader");
+const siteRootUrl = new URL(siteBase.getAttribute("href"), window.location.href);
+
+siteBase.href = siteRootUrl.href;
 
 // ===== STATE =====
 let tickIndex = 0;
@@ -260,28 +113,50 @@ function playTickSound() {
 }
 
 // ===== PRELOAD =====
-function getClassAssetName(className) {
-  return className.toLowerCase().replace(/\s+/g, "-");
+function getGameRouteUrl(gameId) {
+  return new URL(GAME_CONFIGS[gameId].route, siteRootUrl);
 }
 
-function initializeImageConfig(className) {
-  if (imageConfigs[className]) {
-    return;
-  }
+function getGameEntryUrl(gameId) {
+  const routeUrl = getGameRouteUrl(gameId);
 
-  imageConfigs[className] = {
-    offsetX: 0,
-    offsetY: 0,
-    scale: 1,
-    rotation: 0,
-  };
+  return new URL("index.html", routeUrl);
+}
+
+function normalizeActiveGameUrl() {
+  const requestedGameId = new URLSearchParams(window.location.search).get("game");
+
+  if (
+    window.location.protocol !== "file:" &&
+    requestedGameId &&
+    Object.hasOwn(GAME_CONFIGS, requestedGameId)
+  ) {
+    window.history.replaceState(null, "", getGameRouteUrl(ACTIVE_GAME_ID));
+  }
+}
+
+function applyActiveGameConfig() {
+  const inactiveGame = Object.values(GAME_CONFIGS).find((gameConfig) => {
+    return gameConfig.id !== ACTIVE_GAME_ID;
+  });
+
+  document.title = activeGame.ui.documentTitle;
+  gameHeading.textContent = activeGame.ui.heading;
+  gameLogo.src = activeGame.ui.logo.src;
+  gameLogo.alt = activeGame.ui.logo.alt;
+  inactiveGameLogo.src = inactiveGame.ui.logo.src;
+  inactiveGameLogo.alt = inactiveGame.ui.logo.alt;
+  gameSwitchLink.href = getGameEntryUrl(inactiveGame.id).href;
+  gameSwitchLink.setAttribute("aria-label", `Switch to ${inactiveGame.ui.logo.alt}`);
+  gameSwitchLink.title = `Switch to ${inactiveGame.ui.logo.alt}`;
 }
 
 function initializeClassAssets() {
   classOptions.forEach((className, index) => {
+    const classConfig = classConfigs.get(className);
+
     classColors[className] = segmentColors[index % segmentColors.length];
-    classImagePaths[className] = `images/${getClassAssetName(className)}.jpg`;
-    initializeImageConfig(className);
+    classImagePaths[className] = classConfig.assets.wheel.primary;
   });
 }
 
@@ -289,7 +164,7 @@ function preloadClassImages() {
   const imagePromises = classOptions.map((className) => {
     return new Promise((resolve) => {
       const image = new Image();
-      const pngPath = classImagePaths[className].replace(".jpg", ".png");
+      const fallbackPath = classConfigs.get(className).assets.wheel.fallback;
 
       image.onload = () => {
         classImages[className] = image;
@@ -298,7 +173,7 @@ function preloadClassImages() {
 
       image.onerror = () => {
         image.onerror = resolve;
-        image.src = pngPath;
+        image.src = fallbackPath;
       };
 
       image.src = classImagePaths[className];
@@ -314,7 +189,7 @@ function preloadPortraits() {
       const img = new Image();
       img.onload = resolve;
       img.onerror = resolve;
-      img.src = `portraits/${getClassAssetName(className)}.png`;
+      img.src = classConfigs.get(className).assets.portrait;
     });
   });
 
@@ -328,7 +203,7 @@ function preloadUIImages() {
     "images/blood.png",
     "images/arrow.png",
     "images/ring.png",
-    "images/poe2-logo.png",
+    ...Object.values(GAME_CONFIGS).map((gameConfig) => gameConfig.ui.logo.src),
     "images/banner.png",
     "images/jazzarus-logo.png",
     "images/youtube-logo.png",
@@ -473,33 +348,12 @@ function toggleAllClasses() {
   const shouldSelectAll = selectedClasses.length !== classOptions.length;
   const toggles = [...classSelectorList.querySelectorAll(".class-selector-check")];
 
-  if (shouldSelectAll) {
-    // Select all visually first
-    toggles.forEach((toggle) => {
-      setClassSelectorToggle(toggle, true);
-    });
+  toggles.forEach((toggle) => {
+    setClassSelectorToggle(toggle, shouldSelectAll);
+  });
 
-    // Find classes that are NOT currently in selectedClasses
-    const missingClasses = classOptions.filter(
-      (className) => !selectedClasses.includes(className)
-    );
-
-    // Shuffle ONLY the missing ones
-    shuffleClasses(missingClasses);
-
-    // Append them to preserve existing order
-    selectedClasses.push(...missingClasses);
-  } else {
-    // Deselect all (but keep one)
-    toggles.forEach((toggle) => {
-      setClassSelectorToggle(toggle, false);
-    });
-
+  if (!shouldSelectAll) {
     setClassSelectorToggle(toggles[0], true);
-
-    // Keep only one class
-    selectedClasses.length = 1;
-    selectedClasses[0] = toggles[0].dataset.className;
   }
 
   updateSelectedClasses();
@@ -682,9 +536,8 @@ function normalizeAngle(angle) {
 }
 
 function getSegmentAtPointer() {
-  const pointerAngle = -Math.PI / 2;
   const segmentAngle = (Math.PI * 2) / selectedClasses.length;
-  const angleUnderPointer = normalizeAngle(pointerAngle - wheelRotation);
+  const angleUnderPointer = normalizeAngle(POINTER_ANGLE - wheelRotation);
 
   return Math.floor(angleUnderPointer / segmentAngle);
 }
@@ -700,7 +553,7 @@ function spinWheelToClass(selectedClass) {
   const segmentAngle = (Math.PI * 2) / selectedClasses.length;
   const selectedSegmentStart = selectedClass.index * segmentAngle;
   const randomPointInSegment = selectedSegmentStart + Math.random() * segmentAngle;
-  const targetAngle = -Math.PI / 2 - randomPointInSegment;
+  const targetAngle = POINTER_ANGLE - randomPointInSegment;
   const extraSpins = 3 + Math.floor(Math.random() * 3);
   const startRotation = wheelRotation;
   const rotationChange =
@@ -788,20 +641,14 @@ function tuneCurrentClass(event) {
 }
 
 // ===== MODAL =====
-function getPoeNinjaLink(className) {
-  const base = "https://poe.ninja/poe2/builds/vaal";
-  const encodedClass = encodeURIComponent(className);
-
-  return `${base}?class=${encodedClass}&items=!Headhunter&min-level=90&min-ehp=15000&min-dps=75000`;
-}
-
 function showModal(message, className = message, isFinal = false) {
   bloodSplatter.classList.remove("show");
 
+  const classConfig = classConfigs.get(className);
   const classImage = classImages[className];
   const imagePath = isFinal
-    ? classImage?.src || classImagePaths[className]
-    : `portraits/${getClassAssetName(className)}.png`;
+    ? classImage?.src || classConfig.assets.finalArtwork
+    : classConfig.assets.portrait;
 
   if (!isFinal) {
     modalText.innerHTML = `
@@ -823,7 +670,7 @@ function showModal(message, className = message, isFinal = false) {
     findBuildsBtn.classList.remove("hidden");
 
     findBuildsBtn.onclick = () => {
-      window.open(getPoeNinjaLink(className), "_blank");
+      window.open(activeGame.getBuildUrl(className), "_blank");
     };
   } else {
     findBuildsBtn.classList.add("hidden");
@@ -874,7 +721,7 @@ function showFinalClass() {
   finalSound.currentTime = 0;
   finalSound.play();
   showModal(
-    `CONGRATULATIONS, YOU'LL PLAY ${selectedClasses[0].toUpperCase()}`,
+    activeGame.getFinalMessage(selectedClasses[0]),
     selectedClasses[0],
     true
   );
@@ -1015,6 +862,8 @@ function bindEvents() {
 
 // ===== INIT =====
 function init() {
+  normalizeActiveGameUrl();
+  applyActiveGameConfig();
   shuffleClasses(selectedClasses);
   initializeClassAssets();
   bindEvents();
