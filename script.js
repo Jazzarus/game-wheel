@@ -8,6 +8,7 @@ const selectedClasses = activeGame.classes
   .filter((classConfig) => classConfig.selectedByDefault)
   .map((classConfig) => classConfig.name);
 const segmentColors = activeGame.wheel.segmentColors;
+const imageBackgroundColor = activeGame.wheel.imageBackgroundColor;
 const classColors = {};
 const classImagePaths = {};
 const classImages = {};
@@ -431,6 +432,11 @@ function updateWheelCache() {
     wheelCacheContext.moveTo(0, 0);
     wheelCacheContext.arc(0, 0, radius, 0, segmentAngle);
     wheelCacheContext.closePath();
+
+    if (imageBackgroundColor) {
+      wheelCacheContext.fillStyle = imageBackgroundColor;
+      wheelCacheContext.fill();
+    }
 
     if (classImage) {
       wheelCacheContext.save();

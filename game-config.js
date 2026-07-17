@@ -197,6 +197,7 @@ const GAME_CONFIGS = (() => {
     }),
     wheel: Object.freeze({
       segmentColors: poe2.wheel.segmentColors,
+      imageBackgroundColor: "#181818",
     }),
     classes: Object.freeze([
       createPoe1Class("Ascendant", "ascendant", {
@@ -269,6 +270,12 @@ const GAME_CONFIGS = (() => {
         offsetX: 180,
         offsetY: 40,
         scale: 0.7,
+        rotation: 0,
+      }),
+      createPoe1Class("Luminary", "luminary", {
+        offsetX: 0,
+        offsetY: 0,
+        scale: 0.75,
         rotation: 0,
       }),
       createPoe1Class("Necromancer", "necromancer", {
