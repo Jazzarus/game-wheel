@@ -1,10 +1,14 @@
 // ===== ACTIVE GAME =====
 const activeGame = GAME_CONFIGS[ACTIVE_GAME_ID];
+const initialWheelEntries = activeGame.selectionModes?.classes || activeGame.classes;
+const allWheelEntries = activeGame.selectionModes
+  ? Object.values(activeGame.selectionModes).flat()
+  : activeGame.classes;
 const classConfigs = new Map(
-  activeGame.classes.map((classConfig) => [classConfig.name, classConfig])
+  allWheelEntries.map((classConfig) => [classConfig.name, classConfig])
 );
-const classOptions = activeGame.classes.map((classConfig) => classConfig.name);
-const selectedClasses = activeGame.classes
+let classOptions = initialWheelEntries.map((classConfig) => classConfig.name);
+const selectedClasses = initialWheelEntries
   .filter((classConfig) => classConfig.selectedByDefault)
   .map((classConfig) => classConfig.name);
 const segmentColors = activeGame.wheel.segmentColors;
@@ -13,7 +17,7 @@ const classColors = {};
 const classImagePaths = {};
 const classImages = {};
 const imageConfigs = Object.fromEntries(
-  activeGame.classes.map((classConfig) => [
+  allWheelEntries.map((classConfig) => [
     classConfig.name,
     { ...classConfig.wheelImageConfig },
   ])
@@ -46,12 +50,16 @@ const classSelectorPanel = document.getElementById("classSelectorPanel");
 const classSelectorList = document.getElementById("classSelectorList");
 const classSelectorToggle = document.getElementById("classSelectorToggle");
 const modeToggleImage = document.getElementById("modeToggleImage");
-const modeLabels = document.querySelectorAll(".mode-label");
+const modeLabels = document.querySelectorAll("#modeToggle .mode-label");
+const wowWheelTypeToggle = document.getElementById("wowWheelTypeToggle");
+const wowWheelTypeToggleImage = document.getElementById("wowWheelTypeToggleImage");
+const wowWheelTypeLabels = document.querySelectorAll(
+  "#wowWheelTypeToggle .mode-label"
+);
 const restartButton = document.getElementById("restartButton");
 const siteBase = document.getElementById("siteBase");
 const gameLogo = document.getElementById("gameLogo");
-const gameSwitchLink = document.getElementById("gameSwitchLink");
-const inactiveGameLogo = document.getElementById("inactiveGameLogo");
+const gameSwitchLinks = document.getElementById("gameSwitchLinks");
 const gameHeading = document.getElementById("gameHeading");
 const loader = document.getElementById("loader");
 const siteRootUrl = new URL(siteBase.getAttribute("href"), window.location.href);
@@ -72,6 +80,8 @@ let isWheelCacheDirty = true;
 let audioUnlocked = false;
 let isClassicMode = false;
 let isClassSelectorLocked = false;
+let isWowSpecializationMode = false;
+let isWowWheelTypeLocked = false;
 
 // ===== AUDIO =====
 const finalSound = new Audio("sounds/howl.mp3");
@@ -137,7 +147,7 @@ function normalizeActiveGameUrl() {
 }
 
 function applyActiveGameConfig() {
-  const inactiveGame = Object.values(GAME_CONFIGS).find((gameConfig) => {
+  const inactiveGames = Object.values(GAME_CONFIGS).filter((gameConfig) => {
     return gameConfig.id !== ACTIVE_GAME_ID;
   });
 
@@ -145,16 +155,30 @@ function applyActiveGameConfig() {
   gameHeading.textContent = activeGame.ui.heading;
   gameLogo.src = activeGame.ui.logo.src;
   gameLogo.alt = activeGame.ui.logo.alt;
-  inactiveGameLogo.src = inactiveGame.ui.logo.src;
-  inactiveGameLogo.alt = inactiveGame.ui.logo.alt;
-  gameSwitchLink.href = getGameEntryUrl(inactiveGame.id).href;
-  gameSwitchLink.setAttribute("aria-label", `Switch to ${inactiveGame.ui.logo.alt}`);
-  gameSwitchLink.title = `Switch to ${inactiveGame.ui.logo.alt}`;
+  wowWheelTypeToggle.classList.toggle("hidden", !activeGame.selectionModes);
+  gameSwitchLinks.replaceChildren(
+    ...inactiveGames.map((gameConfig) => {
+      const link = document.createElement("a");
+      const logo = document.createElement("img");
+
+      link.className = "game-logo-secondary-link";
+      link.href = getGameEntryUrl(gameConfig.id).href;
+      link.setAttribute("aria-label", `Switch to ${gameConfig.ui.logo.alt}`);
+      link.title = `Switch to ${gameConfig.ui.logo.alt}`;
+
+      logo.className = "game-logo-secondary";
+      logo.src = gameConfig.ui.logo.src;
+      logo.alt = gameConfig.ui.logo.alt;
+      link.append(logo);
+
+      return link;
+    })
+  );
 }
 
 function initializeClassAssets() {
-  classOptions.forEach((className, index) => {
-    const classConfig = classConfigs.get(className);
+  allWheelEntries.forEach((classConfig, index) => {
+    const className = classConfig.name;
 
     classColors[className] = segmentColors[index % segmentColors.length];
     classImagePaths[className] = classConfig.assets.wheel.primary;
@@ -162,7 +186,7 @@ function initializeClassAssets() {
 }
 
 function preloadClassImages() {
-  const imagePromises = classOptions.map((className) => {
+  const imagePromises = allWheelEntries.map(({ name: className }) => {
     return new Promise((resolve) => {
       const image = new Image();
       const fallbackPath = classConfigs.get(className).assets.wheel.fallback;
@@ -185,7 +209,7 @@ function preloadClassImages() {
 }
 
 function preloadPortraits() {
-  const portraitPromises = classOptions.map((className) => {
+  const portraitPromises = allWheelEntries.map(({ name: className }) => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = resolve;
@@ -295,10 +319,15 @@ function setClassSelectorToggle(toggle, isSelected) {
 function renderClassSelector() {
   classSelectorList.innerHTML = "";
 
-  [...classOptions]
-    .sort((firstClass, secondClass) => {
-      return firstClass.localeCompare(secondClass);
-    })
+  const selectorOptions = isWowSpecializationMode
+    ? classOptions
+    : [...classOptions].sort((firstClass, secondClass) => {
+        return getSelectorLabel(firstClass).localeCompare(
+          getSelectorLabel(secondClass)
+        );
+      });
+
+  selectorOptions
     .forEach((className) => {
       const item = document.createElement("button");
       const toggle = document.createElement("img");
@@ -310,7 +339,7 @@ function renderClassSelector() {
       toggle.className = "class-selector-check";
       toggle.dataset.className = className;
       toggle.setAttribute("aria-hidden", "true");
-      text.textContent = className;
+      text.textContent = getSelectorLabel(className);
       setClassSelectorToggle(toggle, isSelected);
 
       item.addEventListener("click", () => {
@@ -331,8 +360,60 @@ function renderClassSelector() {
   updateClassSelectorToggleText();
 }
 
+function getSelectorLabel(className) {
+  return classConfigs.get(className).selectorLabel || className;
+}
+
+function updateWowWheelTypeVisuals() {
+  if (!activeGame.selectionModes) {
+    return;
+  }
+
+  wowWheelTypeLabels.forEach((label, index) => {
+    const isActive = isWowSpecializationMode ? index === 1 : index === 0;
+
+    label.classList.toggle("active", isActive);
+    label.classList.toggle("inactive", !isActive);
+  });
+
+  wowWheelTypeToggleImage.src = isWowSpecializationMode
+    ? "images/elimination.png"
+    : "images/classic.png";
+  classSelectorPanel.setAttribute(
+    "aria-label",
+    isWowSpecializationMode ? "Specialization selection" : "Class selection"
+  );
+}
+
+function setWowWheelType(isSpecializationMode) {
+  if (!activeGame.selectionModes || isWowWheelTypeLocked) {
+    return;
+  }
+
+  isWowSpecializationMode = isSpecializationMode;
+  const choices = activeGame.selectionModes[
+    isWowSpecializationMode ? "specializations" : "classes"
+  ];
+
+  classOptions = choices.map((choice) => choice.name);
+  selectedClasses.length = 0;
+  selectedClasses.push(
+    ...choices
+      .filter((choice) => choice.selectedByDefault)
+      .map((choice) => choice.name)
+  );
+  currentClassIndex = 0;
+  pendingElimination = null;
+  wheelRotation = 0;
+  updateWowWheelTypeVisuals();
+  renderClassSelector();
+  markWheelCacheDirty();
+  drawWheel();
+}
+
 function lockClassSelector() {
   isClassSelectorLocked = true;
+  isWowWheelTypeLocked = true;
   classSelectorPanel.classList.add("is-locked");
 
   classSelectorList.querySelectorAll(".class-selector-item").forEach((item) => {
@@ -399,6 +480,24 @@ function drawImageInSlice(context, className, image, radius, segmentAngle) {
   context.translate(imageCenterX + config.offsetX, imageCenterY + config.offsetY);
   context.rotate(config.rotation);
   context.scale(config.scale, config.scale);
+
+  if (config.hasGoldIconFrame) {
+    const framePadding = 14;
+
+    context.save();
+    context.fillStyle = "rgba(8, 7, 4, 0.92)";
+    context.shadowColor = "rgba(0, 0, 0, 0.78)";
+    context.shadowBlur = 20;
+    context.shadowOffsetY = 14;
+    context.fillRect(
+      -drawWidth / 2 - framePadding,
+      -drawHeight / 2 - framePadding,
+      drawWidth + framePadding * 2,
+      drawHeight + framePadding * 2
+    );
+    context.restore();
+  }
+
   context.drawImage(
     image,
     -drawWidth / 2,
@@ -406,6 +505,19 @@ function drawImageInSlice(context, className, image, radius, segmentAngle) {
     drawWidth,
     drawHeight
   );
+
+  if (config.hasGoldIconFrame) {
+    context.save();
+    context.lineJoin = "round";
+    context.strokeStyle = "#4c2e00";
+    context.lineWidth = 18;
+    context.strokeRect(-drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    context.strokeStyle = "#f4c946";
+    context.lineWidth = 6;
+    context.strokeRect(-drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    context.restore();
+  }
+
   context.restore();
 }
 
@@ -433,8 +545,12 @@ function updateWheelCache() {
     wheelCacheContext.arc(0, 0, radius, 0, segmentAngle);
     wheelCacheContext.closePath();
 
-    if (imageBackgroundColor) {
-      wheelCacheContext.fillStyle = imageBackgroundColor;
+    const sliceBackgroundColor =
+      classConfigs.get(className).wheelImageConfig.sliceBackgroundColor ||
+      imageBackgroundColor;
+
+    if (sliceBackgroundColor) {
+      wheelCacheContext.fillStyle = sliceBackgroundColor;
       wheelCacheContext.fill();
     }
 
@@ -672,7 +788,7 @@ function showModal(message, className = message, isFinal = false) {
     : "popup-portrait";
   modalContent.classList.toggle("is-final-popup", isFinal);
   modalReminder.classList.toggle("hidden", !isFinal);
-  if (isFinal) {
+  if (isFinal && typeof activeGame.getBuildUrl === "function") {
     findBuildsBtn.classList.remove("hidden");
 
     findBuildsBtn.onclick = () => {
@@ -854,12 +970,17 @@ function handleModeToggleClick() {
   updateModeToggleVisuals();
 }
 
+function handleWowWheelTypeToggleClick() {
+  setWowWheelType(!isWowSpecializationMode);
+}
+
 function bindEvents() {
   document.addEventListener("click", unlockAudio);
   document.addEventListener("keydown", handleKeydown);
   classWheel.addEventListener("click", handleWheelClick);
   modalOk.addEventListener("click", handleModalOkClick);
   modeToggleImage.addEventListener("click", handleModeToggleClick);
+  wowWheelTypeToggleImage.addEventListener("click", handleWowWheelTypeToggleClick);
   restartButton.addEventListener("click", () => {
     location.reload();
   });
@@ -875,6 +996,7 @@ function init() {
   bindEvents();
   renderClassSelector();
   updateModeToggleVisuals();
+  updateWowWheelTypeVisuals();
 
   Promise.all([
     preloadClassImages(),

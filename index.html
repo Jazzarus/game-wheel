@@ -19,9 +19,7 @@
     <header class="app-header">
       <div class="game-logo-switcher">
         <img id="gameLogo" alt="" class="poe2-logo game-logo-primary">
-        <a id="gameSwitchLink" class="game-logo-secondary-link">
-          <img id="inactiveGameLogo" alt="" class="game-logo-secondary">
-        </a>
+        <div id="gameSwitchLinks" class="game-logo-secondary-list"></div>
       </div>
     </header>
 
@@ -56,16 +54,30 @@
         <img src="images/youtube-logo.png" alt="" class="yt-banner-yt">
       </a>
 
-      <div id="modeToggle" class="mode-toggle">
-        <span class="mode-label tooltip">
-          Classic
-          <span class="tooltip-box">One spin. You get the class you land on.</span>
-        </span>
-        <img id="modeToggleImage" src="images/classic.png" alt="Mode Toggle">
-        <span class="mode-label tooltip">
-          Elimination
-          <span class="tooltip-box">Each spin removes a class. Continue until only one remains.</span>
-        </span>
+      <div class="footer-mode-controls">
+        <div id="modeToggle" class="mode-toggle">
+          <span class="mode-label tooltip">
+            Classic
+            <span class="tooltip-box">One spin. You get the class you land on.</span>
+          </span>
+          <img id="modeToggleImage" src="images/classic.png" alt="Mode Toggle">
+          <span class="mode-label tooltip">
+            Elimination
+            <span class="tooltip-box">Each spin removes a class. Continue until only one remains.</span>
+          </span>
+        </div>
+
+        <div id="wowWheelTypeToggle" class="mode-toggle hidden">
+          <span class="mode-label tooltip">
+            Class
+            <span class="tooltip-box">Roll a class, then choose its specialization.</span>
+          </span>
+          <img id="wowWheelTypeToggleImage" src="images/classic.png" alt="Class or specialization toggle">
+          <span class="mode-label tooltip">
+            Specialization
+            <span class="tooltip-box">Roll one specific specialization.</span>
+          </span>
+        </div>
       </div>
 
       <button id="restartButton" class="restart-button" type="button">Restart</button>

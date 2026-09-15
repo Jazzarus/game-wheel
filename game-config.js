@@ -42,6 +42,48 @@ const GAME_CONFIGS = (() => {
     });
   }
 
+  const WOW_CLASS_COLORS = Object.freeze({
+    druid: "#FF7C0A",
+    hunter: "#AAD372",
+    mage: "#3FC7EB",
+    paladin: "#F48CBA",
+    priest: "#FFFFFF",
+    rogue: "#FFF468",
+    shaman: "#0070DD",
+    warlock: "#8788EE",
+    warrior: "#C69B6D",
+  });
+
+  function createWowChoice(name, artworkPath, selectorLabel = name) {
+    const assetSegments = artworkPath.split("/");
+    const isSpecialization = artworkPath.includes("/specs/");
+    const wowClassKey = isSpecialization
+      ? assetSegments[3]
+      : assetSegments[assetSegments.length - 1].replace(/\.jpg$/, "");
+
+    return Object.freeze({
+      name,
+      selectorLabel,
+      selectedByDefault: true,
+      assets: Object.freeze({
+        wheel: Object.freeze({
+          primary: artworkPath,
+          fallback: artworkPath,
+        }),
+        portrait: artworkPath,
+        finalArtwork: artworkPath,
+      }),
+      wheelImageConfig: Object.freeze({
+        offsetX: isSpecialization ? 150 : 110,
+        offsetY: isSpecialization ? 10 : 20,
+        scale: isSpecialization ? 0.22 : 0.27,
+        rotation: 0,
+        sliceBackgroundColor: WOW_CLASS_COLORS[wowClassKey],
+        hasGoldIconFrame: true,
+      }),
+    });
+  }
+
   const poe2 = Object.freeze({
     id: "poe2",
     route: "",
@@ -338,7 +380,69 @@ const GAME_CONFIGS = (() => {
     },
   });
 
-  return Object.freeze({ poe2, poe1 });
+  const wow = Object.freeze({
+    id: "wow",
+    route: "wow/",
+    ui: Object.freeze({
+      documentTitle: "World of Warcraft Class Picker",
+      heading: "World of Warcraft Class Picker",
+      logo: Object.freeze({
+        src: "images-wow/wow.png",
+        alt: "World of Warcraft",
+      }),
+    }),
+    wheel: Object.freeze({
+      segmentColors: Object.freeze(["#1b2738", "#35506b", "#8a6d2f", "#4a2f61"]),
+      imageBackgroundColor: "#101722",
+    }),
+    selectionModes: Object.freeze({
+      classes: Object.freeze([
+        createWowChoice("Druid", "wow assets/icons/classes/druid.jpg"),
+        createWowChoice("Hunter", "wow assets/icons/classes/hunter.jpg"),
+        createWowChoice("Mage", "wow assets/icons/classes/mage.jpg"),
+        createWowChoice("Paladin", "wow assets/icons/classes/paladin.jpg"),
+        createWowChoice("Priest", "wow assets/icons/classes/priest.jpg"),
+        createWowChoice("Rogue", "wow assets/icons/classes/rogue.jpg"),
+        createWowChoice("Shaman", "wow assets/icons/classes/shaman.jpg"),
+        createWowChoice("Warlock", "wow assets/icons/classes/warlock.jpg"),
+        createWowChoice("Warrior", "wow assets/icons/classes/warrior.jpg"),
+      ]),
+      specializations: Object.freeze([
+        createWowChoice("Balance Druid", "wow assets/icons/specs/druid/balance.jpg", "Balance"),
+        createWowChoice("Feral Druid", "wow assets/icons/specs/druid/feral-combat.jpg", "Feral"),
+        createWowChoice("Restoration Druid", "wow assets/icons/specs/druid/restoration.jpg"),
+        createWowChoice("Beast Mastery Hunter", "wow assets/icons/specs/hunter/beast-mastery.jpg", "Beast Mastery"),
+        createWowChoice("Marksmanship Hunter", "wow assets/icons/specs/hunter/marksmanship.jpg", "Marksmanship"),
+        createWowChoice("Survival Hunter", "wow assets/icons/specs/hunter/survival.jpg", "Survival"),
+        createWowChoice("Arcane Mage", "wow assets/icons/specs/mage/arcane.jpg", "Arcane"),
+        createWowChoice("Fire Mage", "wow assets/icons/specs/mage/fire.jpg", "Fire"),
+        createWowChoice("Frost Mage", "wow assets/icons/specs/mage/frost.jpg", "Frost"),
+        createWowChoice("Holy Paladin", "wow assets/icons/specs/paladin/holy.jpg"),
+        createWowChoice("Protection Paladin", "wow assets/icons/specs/paladin/protection.jpg"),
+        createWowChoice("Retribution Paladin", "wow assets/icons/specs/paladin/retribution.jpg", "Retribution"),
+        createWowChoice("Discipline Priest", "wow assets/icons/specs/priest/discipline.jpg", "Discipline"),
+        createWowChoice("Holy Priest", "wow assets/icons/specs/priest/holy.jpg"),
+        createWowChoice("Shadow Priest", "wow assets/icons/specs/priest/shadow-magic.jpg", "Shadow"),
+        createWowChoice("Assassination Rogue", "wow assets/icons/specs/rogue/assassination.jpg", "Assassination"),
+        createWowChoice("Combat Rogue", "wow assets/icons/specs/rogue/combat.jpg", "Combat"),
+        createWowChoice("Subtlety Rogue", "wow assets/icons/specs/rogue/subtlety.jpg", "Subtlety"),
+        createWowChoice("Elemental Shaman", "wow assets/icons/specs/shaman/elemental-combat.jpg", "Elemental"),
+        createWowChoice("Enhancement Shaman", "wow assets/icons/specs/shaman/enhancement.jpg", "Enhancement"),
+        createWowChoice("Restoration Shaman", "wow assets/icons/specs/shaman/restoration.jpg"),
+        createWowChoice("Affliction Warlock", "wow assets/icons/specs/warlock/affliction.jpg", "Affliction"),
+        createWowChoice("Demonology Warlock", "wow assets/icons/specs/warlock/demonology.jpg", "Demonology"),
+        createWowChoice("Destruction Warlock", "wow assets/icons/specs/warlock/destruction.jpg", "Destruction"),
+        createWowChoice("Arms Warrior", "wow assets/icons/specs/warrior/arms.jpg", "Arms"),
+        createWowChoice("Fury Warrior", "wow assets/icons/specs/warrior/fury.jpg", "Fury"),
+        createWowChoice("Protection Warrior", "wow assets/icons/specs/warrior/protection.jpg"),
+      ]),
+    }),
+    getFinalMessage(className) {
+      return `CONGRATULATIONS,\nYOU'LL PLAY ${className.toUpperCase()}`;
+    },
+  });
+
+  return Object.freeze({ poe2, poe1, wow });
 })();
 
 function resolveActiveGameId() {

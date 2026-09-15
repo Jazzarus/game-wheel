@@ -75,13 +75,24 @@ h1 {
   object-position: left top;
 }
 
-.game-logo-secondary-link {
+.game-logo-secondary-list {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 48%;
-  aspect-ratio: 269 / 212;
+  left: 50%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: flex-start;
+  justify-items: center;
+  gap: clamp(8px, 1.2vw, 16px);
+  width: calc(100% - 12px);
   margin-top: 18px;
+  transform: translateX(-50%);
+}
+
+.game-logo-secondary-link {
+  display: block;
+  width: 100%;
+  aspect-ratio: 269 / 212;
   cursor: pointer;
   z-index: 20;
   opacity: 0.72;
@@ -585,6 +596,14 @@ body.loading .class-selector-panel {
   gap: 12px;
 }
 
+.footer-mode-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3vw, 48px);
+}
+
 .mode-toggle img {
   width: 50px;
   height: auto;
@@ -655,6 +674,7 @@ body.loading .class-selector-panel {
 .mode-toggle img:active {
   transform: translateY(1px) scale(0.96);
 }
+
 
 .restart-button {
   display: flex;
@@ -1545,6 +1565,10 @@ body.loading .class-selector-panel {
   }
 
   .game-logo-secondary-link {
+    flex-basis: 46%;
+  }
+
+  .game-logo-secondary-list {
     top: 50%;
     left: calc(100% + 14px);
     margin-top: 0;
@@ -1553,7 +1577,7 @@ body.loading .class-selector-panel {
 
   .game-logo-secondary-link:hover,
   .game-logo-secondary-link:focus-visible {
-    transform: translateY(-50%) scale(1.04);
+    transform: scale(1.04);
   }
 
   .app-main,
@@ -1581,6 +1605,16 @@ body.loading .class-selector-panel {
     order: 3;
     align-self: center;
     margin-top: 12px;
+  }
+
+  .footer-mode-controls {
+    order: 3;
+    align-self: center;
+    margin-top: 12px;
+  }
+
+  .footer-mode-controls .mode-toggle {
+    margin-top: 0;
   }
 
   .restart-button {
@@ -1652,5 +1686,32 @@ body.loading .class-selector-panel {
     height: auto;
     max-height: none;
     flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 800px) {
+  .footer-mode-controls {
+    gap: 12px;
+  }
+
+  .footer-mode-controls .mode-toggle {
+    gap: 7px;
+  }
+
+  .footer-mode-controls .mode-label {
+    min-width: 0;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .footer-mode-controls .mode-toggle img {
+    width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-mode-controls {
+    flex-direction: column;
+    gap: 8px;
   }
 }
