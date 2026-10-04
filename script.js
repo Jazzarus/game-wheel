@@ -287,7 +287,7 @@ function updateSelectedClasses() {
     return;
   }
 
-  // Remove deselected classes (preserve order)
+  // Update the active entries from the selector.
   for (let i = selectedClasses.length - 1; i >= 0; i--) {
     if (!selectedNames.includes(selectedClasses[i])) {
       selectedClasses.splice(i, 1);
@@ -304,6 +304,7 @@ function updateSelectedClasses() {
     }
   });
 
+  shuffleClasses(selectedClasses);
   clampCurrentClassIndex();
   updateClassSelectorToggleText();
   markWheelCacheDirty();
@@ -402,6 +403,7 @@ function setWowWheelType(isSpecializationMode) {
       .filter((choice) => choice.selectedByDefault)
       .map((choice) => choice.name)
   );
+  shuffleClasses(selectedClasses);
   currentClassIndex = 0;
   pendingElimination = null;
   wheelRotation = 0;
@@ -907,6 +909,7 @@ function handleModalOkClick() {
 
   selectedClasses.splice(pendingElimination.index, 1);
   pendingElimination = null;
+  shuffleClasses(selectedClasses);
   clampCurrentClassIndex();
   markWheelCacheDirty();
   drawWheel();
@@ -955,6 +958,7 @@ function handleKeydown(event) {
 
   selectedClasses.length = 0;
   selectedClasses.push(...fastForwardClasses);
+  shuffleClasses(selectedClasses);
   pendingElimination = null;
   isSpinning = false;
   previousSegmentIndex = null;
