@@ -87,6 +87,8 @@ h1 {
   width: calc(100% - 12px);
   margin-top: 18px;
   transform: translateX(-50%);
+  z-index: 2;
+  pointer-events: auto;
 }
 
 .game-logo-secondary-link {
@@ -95,6 +97,7 @@ h1 {
   aspect-ratio: 269 / 212;
   cursor: pointer;
   z-index: 20;
+  pointer-events: auto;
   opacity: 0.72;
   transition: opacity 140ms ease, filter 140ms ease, transform 140ms ease;
 }
@@ -594,6 +597,10 @@ body.loading .class-selector-panel {
   align-items: center;
   justify-content: center;
   gap: 12px;
+}
+
+#wowWheelTypeToggle.hidden {
+  display: none;
 }
 
 .footer-mode-controls {
