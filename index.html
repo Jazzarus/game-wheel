@@ -6,6 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
   <base id="siteBase" href="./">
+  <script>
+    // Tags the page with its game before anything is drawn, so the WoW page gets its own theme with no flash.
+    (function () {
+      var game = new URLSearchParams(location.search).get("game");
+      var route = location.pathname.match(/\/(poe1|wow)\/(index\.html)?$/);
+      if (["poe2", "poe1", "wow"].indexOf(game) === -1) game = route ? route[1] : "poe2";
+      document.documentElement.setAttribute("data-game", game);
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" href="images/favicon.png">
 </head>
@@ -27,9 +36,9 @@
       <section class="wheel-area">
         <h1 id="gameHeading"></h1>
         <div class="wheel-container">
-          <img src="images/ring.png" alt="" class="wheel-ring" aria-hidden="true">
+          <img src="images/ring.webp" alt="" class="wheel-ring" aria-hidden="true">
           <canvas id="classWheel" width="1200" height="1200" aria-label="Class picker spinning wheel"></canvas>
-          <img src="images/arrow.png" alt="" class="wheel-pointer" aria-hidden="true">
+          <img src="images/arrow.webp" alt="" class="wheel-pointer" aria-hidden="true">
         </div>
       </section>
 
@@ -48,8 +57,8 @@
         class="yt-banner"
         rel="noopener"
       >
-        <img src="images/banner.png" alt="" class="yt-banner-bg" aria-hidden="true">
-        <img src="images/jazzarus-logo.png" alt="" class="yt-banner-wolf">
+        <img src="images/banner.webp" alt="" class="yt-banner-bg" aria-hidden="true">
+        <img src="images/jazzarus-logo.webp" alt="" class="yt-banner-wolf">
         <span class="yt-banner-name">Jazzarus</span>
         <img src="images/youtube-logo.png" alt="" class="yt-banner-yt">
       </a>
@@ -90,18 +99,18 @@
         <div id="modalText" class="popup-title"></div>
         <div class="popup-portrait-wrapper">
           <img id="modalPortrait" class="popup-portrait" src="" alt="">
-          <img src="images/frame.png" alt="" class="popup-portrait-frame" aria-hidden="true">
-          <img id="bloodSplatter" src="images/blood.png" class="blood-splatter">
+          <img src="images/frame.webp" alt="" class="popup-portrait-frame" aria-hidden="true">
+          <img id="bloodSplatter" src="images/blood.webp" class="blood-splatter">
         </div>
         <div id="modalReminder" class="popup-reminder hidden">REMEMBER TO RESPECT THE WHEEL</div>
         <div class="popup-actions">
           <button id="modalOk" class="popup-button" type="button">
-            <img src="images/ok.png" alt="" class="popup-button-bg" aria-hidden="true">
+            <img src="images/ok.webp" alt="" class="popup-button-bg" aria-hidden="true">
             <span>OK</span>
           </button>
 
           <button id="findBuildsBtn" class="popup-button hidden tooltip" type="button">
-            <img src="images/ok.png" alt="" class="popup-button-bg" aria-hidden="true">
+            <img src="images/ok.webp" alt="" class="popup-button-bg" aria-hidden="true">
             <span>Find Builds</span>
             <span class="tooltip-box">Find top builds for this class</span>
           </button>

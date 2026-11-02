@@ -14,9 +14,11 @@
 
 @font-face {
   font-family: "Fontin";
-  src: url("fonts/fontin.otf") format("opentype");
+  src: url("fonts/fontin.woff2") format("woff2"),
+       url("fonts/fontin.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 * {
@@ -30,14 +32,22 @@ body {
   display: block;
   font-family: "Fontin", serif;
   color: #f2f2f2;
-  background: #111318 url("images/background.png") center/cover no-repeat;
-  background-attachment: fixed;
+  background: #111318;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 html {
   height: 100%;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url("images/background.webp") center/cover no-repeat;
+  pointer-events: none;
 }
 
 button {
@@ -119,7 +129,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: left top;
+  object-position: center;
 }
 
 .yt-banner {
@@ -286,7 +296,7 @@ canvas {
   text-align: center;
   border-style: solid;
   border-width: 82px 78px 81px 81px;
-  border-image: url("images/window.png") 82 78 81 81 fill / 82px 78px 81px 81px stretch;
+  border-image: url("images/window.webp") 82 78 81 81 fill / 82px 78px 81px 81px stretch;
   border-radius: 0;
   box-sizing: border-box;
   background: none;
@@ -694,7 +704,7 @@ body.loading .class-selector-panel {
   font-size: calc(0.95rem * var(--ui-scale));
   letter-spacing: 0.05em;
   background-color: transparent;
-  background-image: url("images/goldbutton.png");
+  background-image: url("images/goldbutton.webp");
   background-size: 100% 100%;
   background-repeat: no-repeat;
   border: none;
@@ -714,6 +724,7 @@ body.loading .class-selector-panel {
 /* ===== CLASS SELECTOR ===== */
 .class-selector-panel {
   width: clamp(300px, 26vw, 420px);
+  max-height: calc(100vh - 160px);
   height: auto;
   overflow: visible;
   display: flex;
@@ -722,7 +733,7 @@ body.loading .class-selector-panel {
   color: #f5e199;
   border-style: solid;
   border-width: 83px 79px 82px 82px;
-  border-image: url("images/window.png") 82 78 81 81 fill / 82px 78px 81px 81px stretch;
+  border-image: url("images/window.webp") 82 78 81 81 fill / 82px 78px 81px 81px stretch;
   box-sizing: border-box;
   background: none;
   z-index: 15;
@@ -797,7 +808,7 @@ body.loading .class-selector-panel {
   font-size: clamp(0.95rem, 1.2vw, 1.2rem);
   letter-spacing: 0.04em;
   text-shadow: 0 1px 2px rgba(25, 9, 0, 0.85);
-  background: url("images/goldbutton.png") center/100% 100% no-repeat;
+  background: url("images/goldbutton.webp") center/100% 100% no-repeat;
   border: 0;
   cursor: pointer;
   transition: filter 140ms ease, transform 140ms ease;
@@ -1551,7 +1562,7 @@ body.loading .class-selector-panel {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px), (max-height: 500px), (max-width: 1200px) and (orientation: portrait) {
   .app {
     display: flex;
     flex-direction: column;
@@ -1592,7 +1603,8 @@ body.loading .class-selector-panel {
     display: contents;
   }
 
-  .wheel-area {
+  .wheel-area,
+  .app-main > .wheel-area {
     order: 2;
     display: flex;
     flex-direction: column;
@@ -1602,8 +1614,8 @@ body.loading .class-selector-panel {
   }
 
   .wheel-container {
-    width: calc(100vw - 32px);
-    height: calc(100vw - 32px);
+    width: min(calc(100vw - 32px), 720px, max(260px, calc(100vh - 80px)));
+    height: min(calc(100vw - 32px), 720px, max(260px, calc(100vh - 80px)));
     justify-self: center;
     margin-inline: auto;
   }
@@ -1632,7 +1644,11 @@ body.loading .class-selector-panel {
     margin-top: 20px;
   }
 
-  .class-selector-panel {
+  .class-selector-panel,
+  .app-main > .class-selector-panel {
+    top: auto;
+    margin-left: 0;
+    max-width: none;
     order: 5;
     align-self: center;
     width: min(75vw, 310px);
@@ -1720,5 +1736,264 @@ body.loading .class-selector-panel {
   .footer-mode-controls {
     flex-direction: column;
     gap: 8px;
+  }
+}
+
+/* ===== RESPONSIVE FIXES ===== */
+/* Rows keep their height (long names may wrap) and the list scrolls instead of rows overlapping. */
+.class-selector-item {
+  flex-shrink: 0;
+}
+
+/* The hand-tuned desktop layouts rely on rows compressing slightly, so they keep that. */
+@media (min-width: 1201px) and (max-width: 1300px) and (max-height: 760px),
+       (min-width: 1301px) and (max-width: 1499px) and (min-height: 730px) and (max-height: 820px),
+       (min-width: 1500px) and (max-width: 1799px) and (min-height: 840px) and (max-height: 980px),
+       (min-width: 1800px) and (max-width: 2200px) and (min-height: 1000px) and (max-height: 1200px),
+       (min-width: 2201px) and (max-width: 3000px) and (min-height: 1201px) and (max-height: 1600px) {
+  .class-selector-item {
+    flex-shrink: 1;
+  }
+}
+
+.class-selector-toggle {
+  white-space: nowrap;
+}
+
+/* Tablet landscape and small laptops: a slimmer frame leaves room for the class names. */
+@media (min-width: 769px) and (max-width: 1200px) and (min-height: 501px) and (orientation: landscape) {
+  .class-selector-panel {
+    border-width: 58px 55px 57px 57px;
+    border-image-width: 58px 55px 57px 57px;
+    padding: 12px 14px;
+  }
+}
+
+.class-selector-list {
+  scrollbar-width: thin;
+  scrollbar-color: #8a6d2f transparent;
+}
+
+@media (min-width: 1201px) and (min-height: 501px), (min-width: 769px) and (min-height: 501px) and (orientation: landscape) {
+  .class-selector-content {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .class-selector-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .class-selector-toggle {
+    flex: 0 0 auto;
+  }
+}
+
+/* Landscape phones: slimmer popup frame so the winner's artwork and both buttons fit on screen. */
+@media (max-height: 500px) {
+  .popup {
+    padding: 8px;
+  }
+
+  .popup-content {
+    border-width: 50px 48px 49px 49px;
+    border-image-width: 50px 48px 49px 49px;
+    max-height: calc(100vh - 16px);
+  }
+
+  .is-final-popup {
+    max-height: calc(100vh - 16px);
+    padding: 4px 20px;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .is-final-popup .popup-portrait-wrapper {
+    height: max(90px, calc(100vh - 230px));
+    max-height: none;
+    flex: 0 0 auto;
+  }
+
+  .is-final-popup .popup-reminder {
+    font-size: 0.8rem;
+  }
+
+  .is-final-popup .popup-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+
+  .is-final-popup .popup-button {
+    width: 200px;
+    height: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ===== WORLD OF WARCRAFT THEME =====
+   Only applies on the WoW page (html[data-game="wow"]). Textures are Blizzard's own interface art:
+   the Classic dialog box (gold border + dark tile), the login-screen red button, the Classic checkbox,
+   the tooltip border and a Classic loading screen. */
+html[data-game="wow"] {
+  --wow-gold: #ffd100;
+  --wow-white: #ffffff;
+  --wow-grey: #9d9d9d;
+}
+
+html[data-game="wow"] body::before {
+  background: #060503 url("wow-art/ui/background.webp") center/cover no-repeat;
+}
+
+html[data-game="wow"] h1 {
+  color: var(--wow-gold);
+  text-shadow: 1px 1px 0 #000, 0 0 12px rgba(0, 0, 0, 0.9);
+}
+
+/* Dialog frames: gold Classic dialog border with the dark tiled background, inset like the game draws it. */
+html[data-game="wow"] .class-selector-panel,
+html[data-game="wow"] .popup-content {
+  border-style: solid;
+  border-width: 32px;
+  border-image: url("wow-art/ui/dialog-gold-border.png") 32 / 32px round;
+}
+
+html[data-game="wow"] .class-selector-panel {
+  padding: 10px 14px;
+}
+
+html[data-game="wow"] .class-selector-panel::before,
+html[data-game="wow"] .popup-content::before {
+  content: "";
+  position: absolute;
+  inset: -21px;
+  z-index: -1;
+  background: url("wow-art/ui/dialog-background-dark.png") repeat;
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+html[data-game="wow"] .popup-content {
+  filter: drop-shadow(0 0 24px rgba(0, 0, 0, 0.85));
+}
+
+html[data-game="wow"] .popup-content:has(.eliminated-text),
+html[data-game="wow"] .is-final-popup {
+  padding: clamp(14px, 2vw, 26px) clamp(18px, 2.4vw, 34px);
+}
+
+/* Text colours from the game's UI: gold for headings and buttons, white for list entries. */
+html[data-game="wow"] .class-selector-item {
+  color: var(--wow-white);
+  text-shadow: 1px 1px 0 #000;
+}
+
+html[data-game="wow"] .class-selector-item:hover {
+  color: var(--wow-gold);
+}
+
+html[data-game="wow"] .popup-title {
+  color: var(--wow-gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+html[data-game="wow"] .eliminated-text {
+  color: #ff2020;
+  text-shadow: 1px 1px 0 #000;
+}
+
+html[data-game="wow"] .popup-reminder {
+  color: var(--wow-white);
+  text-shadow: 1px 1px 0 #000;
+}
+
+html[data-game="wow"] .mode-label {
+  color: var(--wow-gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+html[data-game="wow"] .mode-label.inactive {
+  color: var(--wow-grey);
+}
+
+/* Red login-screen buttons */
+html[data-game="wow"] .restart-button,
+html[data-game="wow"] .class-selector-toggle,
+html[data-game="wow"] .popup-button {
+  color: var(--wow-gold);
+  text-shadow: 1px 1px 0 #000;
+  background: url("wow-art/ui/button-red.webp") center/100% 100% no-repeat;
+}
+
+html[data-game="wow"] .popup-button-bg {
+  display: none;
+}
+
+html[data-game="wow"] .popup-button {
+  color: var(--wow-gold);
+}
+
+/* Portraits and winner artwork get a thin gold dialog border instead of the PoE frame. */
+html[data-game="wow"] .popup-portrait-frame {
+  display: none;
+}
+
+html[data-game="wow"] .popup-portrait {
+  border-style: solid;
+  border-width: 12px;
+  border-image: url("wow-art/ui/dialog-gold-border.png") 32 / 12px round;
+  background: #000;
+  box-sizing: content-box;
+}
+
+/* Winner artwork keeps its own proportions (class art is very wide), framed tightly in gold. */
+html[data-game="wow"] .is-final-popup .popup-portrait-wrapper {
+  height: auto;
+  max-height: none;
+  max-width: 100%;
+  flex: 0 1 auto;
+}
+
+html[data-game="wow"] .is-final-popup .final-popup-image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(52vh, 560px);
+  border-width: 16px;
+  border-image-width: 16px;
+  box-sizing: border-box;
+}
+
+@media (max-height: 500px) {
+  html[data-game="wow"] .is-final-popup .final-popup-image {
+    max-height: max(90px, calc(100vh - 210px));
+  }
+}
+
+html[data-game="wow"] .popup-portrait-wrapper {
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
+}
+
+/* Tooltips use the game's tooltip border */
+html[data-game="wow"] .tooltip-box {
+  color: var(--wow-white);
+  background: rgba(0, 0, 8, 0.88);
+  border: 6px solid transparent;
+  border-image: url("wow-art/ui/tooltip-border.png") 16 / 8px round;
+  border-radius: 0;
+}
+
+html[data-game="wow"] .loader-wheel {
+  border-color: rgba(255, 209, 0, 0.2);
+  border-top-color: var(--wow-gold);
+  box-shadow: 0 0 20px rgba(255, 209, 0, 0.35);
+}
+
+/* The WoW frame's gold line sits on its outer edge, so the panel always stays fully on screen. */
+@media (min-width: 1201px) and (min-height: 501px), (min-width: 769px) and (min-height: 501px) and (orientation: landscape) {
+  html[data-game="wow"] .app-main > .class-selector-panel {
+    max-width: calc(100% - var(--selector-polish-offset));
   }
 }

@@ -31,6 +31,7 @@ const SHAKE_DURATION = 200;
 const SPIN_DURATION = 10000;
 const TICK_POOL_SIZE = 6;
 const POINTER_ANGLE = 0;
+const SOUND_PRELOAD_TIMEOUT = 4000;
 
 // ===== DOM REFERENCES =====
 const classWheel = document.getElementById("classWheel");
@@ -82,6 +83,9 @@ let isClassicMode = false;
 let isClassSelectorLocked = false;
 let isWowSpecializationMode = false;
 let isWowWheelTypeLocked = false;
+let spinFrameId = null;
+let currentBuildsLeague = activeGame.buildsLeague;
+const pendingTimeouts = new Set();
 
 // ===== AUDIO =====
 const finalSound = new Audio("sounds/howl.mp3");
@@ -103,24 +107,81 @@ for (let i = 0; i < TICK_POOL_SIZE; i++) {
   tickSounds.push(sound);
 }
 
+const allSounds = [finalSound, cheersSound, reloadSound, gunshotSound, ...tickSounds];
+
+// Plays a sound from the start. A browser refusing playback is ignored instead of throwing an error.
+function playSound(sound) {
+  sound.isPriming = false;
+  sound.muted = false;
+  sound.currentTime = 0;
+
+  const playback = sound.play();
+
+  if (playback) {
+    playback.catch(() => {});
+  }
+}
+
+function stopAllSounds() {
+  allSounds.forEach((sound) => {
+    sound.isPriming = false;
+    sound.pause();
+    sound.muted = false;
+    sound.currentTime = 0;
+  });
+}
+
+// Phones (iOS especially) only let a sound play later if it was first started by a tap or click,
+// so every sound is started silently once, on the first click, and stopped straight away.
 function unlockAudio() {
   if (audioUnlocked) {
     return;
   }
 
-  const testAudio = new Audio("sounds/tick.mp3");
-  testAudio.volume = 0;
-  testAudio.play().catch(() => {});
   audioUnlocked = true;
+
+  allSounds.forEach((sound) => {
+    if (!sound.paused) {
+      return;
+    }
+
+    const finishPriming = () => {
+      if (!sound.isPriming) {
+        return;
+      }
+
+      sound.isPriming = false;
+      sound.pause();
+      sound.currentTime = 0;
+      sound.muted = false;
+    };
+
+    sound.isPriming = true;
+    sound.muted = true;
+
+    const playback = sound.play();
+
+    if (playback) {
+      playback.then(finishPriming, finishPriming);
+    } else {
+      finishPriming();
+    }
+  });
 }
 
 function playTickSound() {
-  const sound = tickSounds[tickIndex];
-
-  sound.currentTime = 0;
-  sound.play();
+  playSound(tickSounds[tickIndex]);
 
   tickIndex = (tickIndex + 1) % TICK_POOL_SIZE;
+}
+
+function schedule(callback, delay) {
+  const timeoutId = setTimeout(() => {
+    pendingTimeouts.delete(timeoutId);
+    callback();
+  }, delay);
+
+  pendingTimeouts.add(timeoutId);
 }
 
 // ===== PRELOAD =====
@@ -208,35 +269,71 @@ function preloadClassImages() {
   return Promise.all(imagePromises);
 }
 
-function preloadPortraits() {
-  const portraitPromises = allWheelEntries.map(({ name: className }) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = resolve;
-      img.onerror = resolve;
-      img.src = classConfigs.get(className).assets.portrait;
-    });
+// Loads elimination portraits in the background. Only the entries currently on offer are loaded
+// (WoW loads its spec portraits once you switch to specializations).
+function preloadPortraits(classNames = classOptions) {
+  const portraitPromises = classNames.map((className) => {
+    return preloadImage(classConfigs.get(className).assets.portrait);
   });
 
   return Promise.all(portraitPromises);
 }
 
-function preloadUIImages() {
-  const uiImagePaths = [
-    "images/window.png",
-    "images/frame.png",
-    "images/blood.png",
-    "images/arrow.png",
-    "images/ring.png",
-    ...Object.values(GAME_CONFIGS).map((gameConfig) => gameConfig.ui.logo.src),
-    "images/banner.png",
-    "images/jazzarus-logo.png",
-    "images/youtube-logo.png",
+const requestedImages = new Map();
+
+function preloadImage(path) {
+  if (!requestedImages.has(path)) {
+    requestedImages.set(path, new Promise((resolve) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = path;
+    }));
+  }
+
+  return requestedImages.get(path);
+}
+
+// Classes with their own winner artwork (WoW) load it as soon as the winner is certain,
+// so the winner popup never waits for it and the page doesn't download every artwork up front.
+function preloadFinalArtwork(className) {
+  const classConfig = className && classConfigs.get(className);
+
+  if (classConfig && classConfig.assets.hasOwnFinalArtwork) {
+    preloadImage(classConfig.assets.finalArtwork);
+  }
+}
+
+// Images visible as soon as the page shows.
+const CRITICAL_UI_IMAGES = [
+  "images/arrow.webp",
+  "images/ring.webp",
+  ...Object.values(GAME_CONFIGS).map((gameConfig) => gameConfig.ui.logo.src),
+  "images/banner.webp",
+  "images/jazzarus-logo.webp",
+  "images/youtube-logo.png",
+  ...(activeGame.ui.criticalImages || [
+    "images/window.webp",
     "images/check.png",
     "images/uncheck.png",
-    "images/goldbutton.png",
-  ];
+    "images/goldbutton.webp",
+  ]),
+];
 
+// Images only needed in the popups; they load in the background after the wheel is ready.
+const POPUP_UI_IMAGES = [
+  "images/blood.webp",
+  "images/elimination.png",
+  "images/classic.png",
+  ...(activeGame.ui.criticalImages ? [] : ["images/frame.webp", "images/ok.webp"]),
+];
+
+const CHECKBOX_IMAGES = activeGame.ui.checkbox || {
+  on: "images/check.png",
+  off: "images/uncheck.png",
+};
+
+function preloadUIImages(uiImagePaths) {
   const promises = uiImagePaths.map((path) => {
     return new Promise((resolve) => {
       const img = new Image();
@@ -249,17 +346,47 @@ function preloadUIImages() {
   return Promise.all(promises);
 }
 
+// Waits until each sound can play, but never longer than SOUND_PRELOAD_TIMEOUT:
+// some phone browsers never report that, which used to leave the loading screen up forever.
 function preloadSounds() {
   const sounds = [finalSound, cheersSound, reloadSound, gunshotSound];
 
   return Promise.all(
     sounds.map((sound) => {
       return new Promise((resolve) => {
-        sound.oncanplaythrough = resolve;
+        const done = () => {
+          clearTimeout(timeoutId);
+          sound.removeEventListener("canplaythrough", done);
+          sound.removeEventListener("error", done);
+          resolve();
+        };
+        const timeoutId = setTimeout(done, SOUND_PRELOAD_TIMEOUT);
+
+        sound.addEventListener("canplaythrough", done);
+        sound.addEventListener("error", done);
         sound.load();
       });
     })
   );
+}
+
+// Reads leagues.json (kept up to date by the update-leagues job) so "Find Builds" opens the current league.
+// If the file is missing or unreadable, the league written in game-config.js is used.
+function loadCurrentBuildsLeague() {
+  if (!activeGame.buildsLeague || window.location.protocol === "file:") {
+    return;
+  }
+
+  fetch("leagues.json", { cache: "no-cache" })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((leagues) => {
+      const league = leagues && leagues[ACTIVE_GAME_ID];
+
+      if (typeof league === "string" && /^[a-z0-9]+$/.test(league)) {
+        currentBuildsLeague = league;
+      }
+    })
+    .catch(() => {});
 }
 
 // ===== CLASS SELECTOR =====
@@ -313,7 +440,7 @@ function updateSelectedClasses() {
 
 function setClassSelectorToggle(toggle, isSelected) {
   toggle.dataset.selected = String(isSelected);
-  toggle.src = isSelected ? "images/check.png" : "images/uncheck.png";
+  toggle.src = isSelected ? CHECKBOX_IMAGES.on : CHECKBOX_IMAGES.off;
   toggle.alt = isSelected ? "Selected" : "Not selected";
 }
 
@@ -397,6 +524,7 @@ function setWowWheelType(isSpecializationMode) {
   ];
 
   classOptions = choices.map((choice) => choice.name);
+  preloadPortraits(classOptions);
   selectedClasses.length = 0;
   selectedClasses.push(
     ...choices
@@ -705,10 +833,11 @@ function spinWheelToClass(selectedClass) {
     }
 
     if (progress < 1) {
-      requestAnimationFrame(animateSpin);
+      spinFrameId = requestAnimationFrame(animateSpin);
       return;
     }
 
+    spinFrameId = null;
     isSpinning = false;
     previousSegmentIndex = null;
 
@@ -721,7 +850,7 @@ function spinWheelToClass(selectedClass) {
     }
   }
 
-  requestAnimationFrame(animateSpin);
+  spinFrameId = requestAnimationFrame(animateSpin);
 }
 
 function tuneCurrentClass(event) {
@@ -771,7 +900,9 @@ function showModal(message, className = message, isFinal = false) {
   const classConfig = classConfigs.get(className);
   const classImage = classImages[className];
   const imagePath = isFinal
-    ? classImage?.src || classConfig.assets.finalArtwork
+    ? classConfig.assets.hasOwnFinalArtwork
+      ? classConfig.assets.finalArtwork
+      : classImage?.src || classConfig.assets.finalArtwork
     : classConfig.assets.portrait;
 
   if (!isFinal) {
@@ -794,7 +925,7 @@ function showModal(message, className = message, isFinal = false) {
     findBuildsBtn.classList.remove("hidden");
 
     findBuildsBtn.onclick = () => {
-      window.open(activeGame.getBuildUrl(className), "_blank");
+      window.open(activeGame.getBuildUrl(className, currentBuildsLeague), "_blank");
     };
   } else {
     findBuildsBtn.classList.add("hidden");
@@ -811,19 +942,17 @@ function showModal(message, className = message, isFinal = false) {
 }
 
 function playEliminationEffects() {
-  reloadSound.currentTime = 0;
-  reloadSound.play();
+  playSound(reloadSound);
 
-  setTimeout(() => {
-    gunshotSound.currentTime = 0;
-    gunshotSound.play();
+  schedule(() => {
+    playSound(gunshotSound);
 
     modalContent.classList.add("shake");
-    setTimeout(() => {
+    schedule(() => {
       modalContent.classList.remove("shake");
     }, SHAKE_DURATION);
 
-    setTimeout(() => {
+    schedule(() => {
       const randomX = (Math.random() - 0.5) * BLOOD_RANDOM_RANGE;
       const randomY = (Math.random() - 0.5) * BLOOD_RANDOM_RANGE;
 
@@ -842,8 +971,7 @@ function hideModal() {
 
 function showFinalClass() {
   isFinished = true;
-  finalSound.currentTime = 0;
-  finalSound.play();
+  playSound(finalSound);
   showModal(
     activeGame.getFinalMessage(selectedClasses[0]),
     selectedClasses[0],
@@ -891,11 +1019,20 @@ function handleWheelClick() {
   lockClassSelector();
 
   if (selectedClasses.length === 1) {
+    preloadFinalArtwork(selectedClasses[0]);
     showFinalClass();
     return;
   }
 
   pendingElimination = getRandomClass(selectedClasses);
+
+  // The winner is already certain in Classic mode, or when this spin leaves one entry standing.
+  if (isClassicMode) {
+    preloadFinalArtwork(pendingElimination.name);
+  } else if (selectedClasses.length === 2) {
+    preloadFinalArtwork(selectedClasses[1 - pendingElimination.index]);
+  }
+
   spinWheelToClass(pendingElimination);
 }
 
@@ -978,6 +1115,58 @@ function handleWowWheelTypeToggleClick() {
   setWowWheelType(!isWowSpecializationMode);
 }
 
+// Puts everything back exactly as it is right after the page loads, without downloading the page again.
+function restartApp() {
+  if (spinFrameId !== null) {
+    cancelAnimationFrame(spinFrameId);
+    spinFrameId = null;
+  }
+
+  pendingTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+  pendingTimeouts.clear();
+  cheersSound.removeEventListener("ended", showFinalClass);
+  stopAllSounds();
+
+  hideModal();
+  modalContent.classList.remove("shake");
+  bloodSplatter.classList.remove("show");
+  wheelPointer.classList.remove("is-pushed");
+
+  tickIndex = 0;
+  pendingElimination = null;
+  isFinished = false;
+  wheelRotation = 0;
+  isSpinning = false;
+  previousSegmentIndex = null;
+  isTuningMode = false;
+  currentClassIndex = 0;
+  isClassicMode = false;
+  isClassSelectorLocked = false;
+  isWowSpecializationMode = false;
+  isWowWheelTypeLocked = false;
+
+  allWheelEntries.forEach((classConfig) => {
+    imageConfigs[classConfig.name] = { ...classConfig.wheelImageConfig };
+  });
+
+  classOptions = initialWheelEntries.map((classConfig) => classConfig.name);
+  selectedClasses.length = 0;
+  selectedClasses.push(
+    ...initialWheelEntries
+      .filter((classConfig) => classConfig.selectedByDefault)
+      .map((classConfig) => classConfig.name)
+  );
+  shuffleClasses(selectedClasses);
+
+  classSelectorPanel.classList.remove("is-locked");
+  classSelectorToggle.disabled = false;
+  renderClassSelector();
+  updateModeToggleVisuals();
+  updateWowWheelTypeVisuals();
+  markWheelCacheDirty();
+  drawWheel();
+}
+
 function bindEvents() {
   document.addEventListener("click", unlockAudio);
   document.addEventListener("keydown", handleKeydown);
@@ -985,9 +1174,7 @@ function bindEvents() {
   modalOk.addEventListener("click", handleModalOkClick);
   modeToggleImage.addEventListener("click", handleModeToggleClick);
   wowWheelTypeToggleImage.addEventListener("click", handleWowWheelTypeToggleClick);
-  restartButton.addEventListener("click", () => {
-    location.reload();
-  });
+  restartButton.addEventListener("click", restartApp);
   classSelectorToggle.addEventListener("click", toggleAllClasses);
 }
 
@@ -1002,17 +1189,21 @@ function init() {
   updateModeToggleVisuals();
   updateWowWheelTypeVisuals();
 
+  loadCurrentBuildsLeague();
+
   Promise.all([
     preloadClassImages(),
-    preloadPortraits(),
     preloadSounds(),
-    preloadUIImages(),
+    preloadUIImages(CRITICAL_UI_IMAGES),
   ]).then(() => {
     areClassImagesLoaded = true;
     markWheelCacheDirty();
     drawWheel();
     document.body.classList.remove("loading");
     loader.style.display = "none";
+
+    preloadPortraits();
+    preloadUIImages(POPUP_UI_IMAGES);
   });
 }
 

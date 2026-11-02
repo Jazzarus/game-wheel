@@ -11,8 +11,8 @@ const GAME_CONFIGS = (() => {
       selectedByDefault,
       assets: Object.freeze({
         wheel: Object.freeze({
-          primary: `images/${assetName}.jpg`,
-          fallback: `images/${assetName}.png`,
+          primary: `images/${assetName}.webp`,
+          fallback: `images/${assetName}.jpg`,
         }),
         portrait: `portraits/${assetName}.png`,
         finalArtwork: `images/${assetName}.${finalArtworkExtension}`,
@@ -25,7 +25,7 @@ const GAME_CONFIGS = (() => {
   }
 
   function createPoe1Class(name, assetName, wheelImageConfig) {
-    const imagePath = `images-poe1/${assetName}.png`;
+    const imagePath = `images-poe1/${assetName}.webp`;
 
     return Object.freeze({
       name,
@@ -33,7 +33,7 @@ const GAME_CONFIGS = (() => {
       assets: Object.freeze({
         wheel: Object.freeze({
           primary: imagePath,
-          fallback: imagePath,
+          fallback: `images-poe1/${assetName}.png`,
         }),
         portrait: `portraits-poe1/${assetName}.png`,
         finalArtwork: imagePath,
@@ -60,6 +60,8 @@ const GAME_CONFIGS = (() => {
     const wowClassKey = isSpecialization
       ? assetSegments[3]
       : assetSegments[assetSegments.length - 1].replace(/\.jpg$/, "");
+    // "wow assets/icons/specs/druid/balance.jpg" -> "specs/druid/balance"
+    const artKey = artworkPath.replace(/^wow assets\/icons\//, "").replace(/\.jpg$/, "");
 
     return Object.freeze({
       name,
@@ -70,8 +72,11 @@ const GAME_CONFIGS = (() => {
           primary: artworkPath,
           fallback: artworkPath,
         }),
-        portrait: artworkPath,
-        finalArtwork: artworkPath,
+        // Elimination popup: spec portrait from Wowhead's talent calculator, or a crop of the class art.
+        portrait: `wow-art/portraits/${artKey}.webp`,
+        // Winner popup: the retail talent-calculator background (specs) or the full class art (classes).
+        finalArtwork: `wow-art/final/${artKey}.webp`,
+        hasOwnFinalArtwork: true,
       }),
       wheelImageConfig: Object.freeze({
         offsetX: isSpecialization ? 150 : 110,
@@ -91,7 +96,7 @@ const GAME_CONFIGS = (() => {
       documentTitle: "Path of Exile 2 Class Picker",
       heading: "Path of Exile 2 Class Picker",
       logo: Object.freeze({
-        src: "images/poe2-logo.png",
+        src: "images/poe2-logo.webp",
         alt: "Path of Exile 2",
       }),
     }),
@@ -123,7 +128,7 @@ const GAME_CONFIGS = (() => {
         offsetX: 190,
         offsetY: 190,
         scale: 1.85,
-      }, { finalArtworkExtension: "png" }),
+      }),
       createPoe2Class("Ritualist", "ritualist", {
         offsetX: -10,
         offsetY: 240,
@@ -133,7 +138,7 @@ const GAME_CONFIGS = (() => {
         offsetX: 60,
         offsetY: 140,
         scale: 1.6,
-      }, { finalArtworkExtension: "png" }),
+      }),
       createPoe2Class("Invoker", "invoker", {
         offsetX: 70,
         offsetY: 340,
@@ -215,8 +220,10 @@ const GAME_CONFIGS = (() => {
         scale: 2.55,
       }),
     ]),
-    getBuildUrl(className) {
-      const base = "https://poe.ninja/poe2/builds/runesofaldur";
+    // poe.ninja league used by "Find Builds" when leagues.json can't be read.
+    buildsLeague: "forbiddenrites",
+    getBuildUrl(className, league = poe2.buildsLeague) {
+      const base = `https://poe.ninja/poe2/builds/${league}`;
       const encodedClass = encodeURIComponent(className);
 
       return `${base}?class=${encodedClass}&items=!Headhunter%2C!Mageblood&min-level=90&min-ehp=15000&min-dps=75000`;
@@ -233,7 +240,7 @@ const GAME_CONFIGS = (() => {
       documentTitle: "Path of Exile 1 Class Picker",
       heading: "Path of Exile 1 Class Picker",
       logo: Object.freeze({
-        src: "images-poe1/poe1-logo.png",
+        src: "images-poe1/poe1-logo.webp",
         alt: "Path of Exile 1",
       }),
     }),
@@ -369,8 +376,10 @@ const GAME_CONFIGS = (() => {
         rotation: 0,
       }),
     ]),
-    getBuildUrl(className) {
-      const base = "https://poe.ninja/poe1/builds/mirage/";
+    // poe.ninja league used by "Find Builds" when leagues.json can't be read.
+    buildsLeague: "allflame",
+    getBuildUrl(className, league = poe1.buildsLeague) {
+      const base = `https://poe.ninja/poe1/builds/${league}/`;
       const encodedClass = encodeURIComponent(className);
 
       return `${base}?items=!Mageblood%2C!Screams+of+the+Desiccated%2C!Headhunter&class=${encodedClass}&min-level=90&min-ehp=20000&min-dps=250000`;
@@ -387,9 +396,20 @@ const GAME_CONFIGS = (() => {
       documentTitle: "World of Warcraft Class Picker",
       heading: "World of Warcraft Class Picker",
       logo: Object.freeze({
-        src: "images-wow/wow.png",
+        src: "images-wow/wow.webp",
         alt: "World of Warcraft",
       }),
+      // WoW interface theme (styles live under html[data-game="wow"] in style.css).
+      checkbox: Object.freeze({
+        on: "wow-art/ui/checkbox-on.png",
+        off: "wow-art/ui/checkbox-off.png",
+      }),
+      criticalImages: Object.freeze([
+        "wow-art/ui/background.webp",
+        "wow-art/ui/dialog-gold-border.png",
+        "wow-art/ui/dialog-background-dark.png",
+        "wow-art/ui/button-red.webp",
+      ]),
     }),
     wheel: Object.freeze({
       segmentColors: Object.freeze(["#1b2738", "#35506b", "#8a6d2f", "#4a2f61"]),
